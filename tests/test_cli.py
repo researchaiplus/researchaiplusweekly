@@ -4,7 +4,13 @@ from types import SimpleNamespace
 from click.testing import CliRunner
 
 from newsletter.cli import cli
-from newsletter.io.models import MetadataRecord, NewsletterEntry, PipelineResult, PrimaryTopic
+from newsletter.io.models import (
+    MetadataRecord,
+    NewsletterEntry,
+    PipelineResult,
+    PrimaryTopic,
+    RepositoryReference,
+)
 
 
 def _pipeline_result() -> PipelineResult:
@@ -15,9 +21,14 @@ def _pipeline_result() -> PipelineResult:
         organizations=["Org"],
         recommendation="Great read",
         subtopics=[],
-        repositories=[],
+        repositories=[
+            RepositoryReference(
+                url="https://github.com/example/repo",
+                provider="github",
+                reason="Provided in tests",
+            )
+        ],
         datasets=[],
-        attachments=[],
         missing_optional_fields=[],
     )
     entry = NewsletterEntry(

@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from newsletter.io.models import MetadataRecord, NewsletterEntry, PrimaryTopic
+from newsletter.io.models import (
+    MetadataRecord,
+    NewsletterEntry,
+    PrimaryTopic,
+    RepositoryReference,
+)
 from newsletter.pipeline.markdown_renderer import MarkdownRenderer
 
 
@@ -12,9 +17,14 @@ def _entry(topic: PrimaryTopic, title: str, subtopics: list[str] | None = None) 
         organizations=["Org"],
         recommendation="Insightful work",
         subtopics=subtopics or [],
-        repositories=[],
+        repositories=[
+            RepositoryReference(
+                url="https://github.com/example/repo",
+                provider="github",
+                reason="Test fixture",
+            )
+        ],
         datasets=[],
-        attachments=[],
         missing_optional_fields=[],
     )
     return NewsletterEntry(

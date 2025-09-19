@@ -81,9 +81,8 @@ class MetadataRecord(BaseModel):
     organizations: list[str]
     recommendation: str
     subtopics: list[str] = Field(default_factory=list)
-    repositories: list[str] = Field(default_factory=list)
+    repositories: list["RepositoryReference"] = Field(default_factory=list)
     datasets: list[str] = Field(default_factory=list)
-    attachments: list[str] = Field(default_factory=list)
     missing_optional_fields: list[str] = Field(default_factory=list)
 
 
@@ -98,6 +97,14 @@ class NewsletterEntry(BaseModel):
     @property
     def primary_subtopic(self) -> str | None:
         return self.subtopics[0] if self.subtopics else None
+
+
+class RepositoryReference(BaseModel):
+    """Represents a repository link and the rationale for linking it."""
+
+    url: AnyHttpUrl
+    provider: str = Field(description="Repository provider, e.g., github or huggingface-model.")
+    reason: str
 
 
 class PipelineResult(BaseModel):

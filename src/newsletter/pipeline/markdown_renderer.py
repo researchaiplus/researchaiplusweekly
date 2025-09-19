@@ -92,11 +92,12 @@ class MarkdownRenderer:
                 block_lines.append("Organizations: " + ", ".join(metadata.organizations))
             block_lines.append(f"Recommendation: {metadata.recommendation}")
             if metadata.repositories:
-                block_lines.append("Repositories: " + ", ".join(metadata.repositories))
+                repo_lines = [
+                    f"{repo.provider}: {repo.url} ({repo.reason})" for repo in metadata.repositories
+                ]
+                block_lines.append("Repositories: " + "; ".join(repo_lines))
             if metadata.datasets:
                 block_lines.append("Datasets: " + ", ".join(metadata.datasets))
-            if metadata.attachments:
-                block_lines.append("Attachments: " + ", ".join(metadata.attachments))
             blocks.append("  \n".join(block_lines))
         return "\n\n".join(blocks)
 

@@ -41,7 +41,13 @@ def test_metadata_extractor_success() -> None:
             "organizations": ["Org1"],
             "recommendation": "This work introduces a novel method for transformers.",
             "subtopics": ["LLM"],
-            "attachments": ["Slides"],
+            "repositories": [
+                {
+                    "url": "https://github.com/org/repo",
+                    "provider": "github",
+                    "reason": "Official implementation released by the authors.",
+                }
+            ],
         }
     )
     llm = StubLLM([response])
@@ -51,7 +57,9 @@ def test_metadata_extractor_success() -> None:
     metadata = extractor.extract(article)
 
     assert isinstance(metadata, MetadataRecord)
-    assert metadata.repositories == ["https://github.com/org/repo"]
+    assert [repo.url for repo in metadata.repositories] == ["https://github.com/org/repo"]
+    assert metadata.repositories[0].provider == "github"
+    assert metadata.repositories[0].reason == "Official implementation released by the authors."
     assert metadata.subtopics == ["LLM"]
     assert metadata.missing_optional_fields == ["datasets"]
 
@@ -67,7 +75,7 @@ def test_metadata_extractor_retries_and_truncates() -> None:
                 "organizations": [],
                 "recommendation": long_text,
                 "subtopics": [],
-                "attachments": [],
+                "repositories": [],
             }
         ),
     ]

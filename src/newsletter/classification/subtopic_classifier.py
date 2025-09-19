@@ -85,8 +85,9 @@ def _build_messages(
         snippet_lines.append(metadata.recommendation)
     snippet = "\n".join(snippet_lines)
     system_prompt = (
-        "Classify research papers into one or more subtopics. Use the candidate list and only introduce a "
-        "new subtopic if necessary. Return a JSON object with `subtopics` as an array of strings."
+        "Classify the research paper into exactly one best-fit subtopic. Use the candidate list and only "
+        "introduce a new label if none apply. Return a JSON object with `subtopics` as an array containing a "
+        "single string."
     )
     user_prompt = (
         f"Candidate subtopics: {', '.join(SUPPORTED_SUBTOPICS)}\n"

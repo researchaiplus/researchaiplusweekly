@@ -1,7 +1,13 @@
 import json
 
 from newsletter.classification.subtopic_classifier import SubtopicClassifier
-from newsletter.io.models import ArticleContent, ClassifiedArticle, MetadataRecord, PrimaryTopic
+from newsletter.io.models import (
+    ArticleContent,
+    ClassifiedArticle,
+    MetadataRecord,
+    PrimaryTopic,
+    RepositoryReference,
+)
 
 
 class StubLLM:
@@ -52,9 +58,14 @@ def test_subtopic_classifier_llm_fallback() -> None:
         organizations=[],
         recommendation="",
         subtopics=[],
-        repositories=[],
+        repositories=[
+            RepositoryReference(
+                url="https://github.com/example/repo",
+                provider="github",
+                reason="Fixture",
+            )
+        ],
         datasets=[],
-        attachments=[],
         missing_optional_fields=[],
     )
 

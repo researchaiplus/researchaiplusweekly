@@ -4,6 +4,7 @@ from newsletter.io.models import (
     ClassifiedArticle,
     MetadataRecord,
     PrimaryTopic,
+    RepositoryReference,
     UrlEntry,
     UrlLoadResult,
 )
@@ -72,9 +73,14 @@ def test_pipeline_success_flow() -> None:
         organizations=["Org"],
         recommendation="Great research",
         subtopics=[],
-        repositories=[],
+        repositories=[
+            RepositoryReference(
+                url="https://github.com/example/repo",
+                provider="github",
+                reason="Provided in test",
+            )
+        ],
         datasets=[],
-        attachments=[],
         missing_optional_fields=[],
     )
 
