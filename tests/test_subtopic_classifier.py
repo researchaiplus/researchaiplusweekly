@@ -1,13 +1,7 @@
 import json
 
 from newsletter.classification.subtopic_classifier import SubtopicClassifier
-from newsletter.io.models import (
-    ArticleContent,
-    ClassifiedArticle,
-    MetadataRecord,
-    PrimaryTopic,
-    RepositoryReference,
-)
+from newsletter.io.models import MetadataRecord, NewsletterEntry, PrimaryTopic, RepositoryReference
 
 
 class StubLLM:
@@ -20,43 +14,13 @@ class StubLLM:
         return self.payload
 
 
-def _paper(text: str) -> ClassifiedArticle:
-    content = ArticleContent(url="https://example.com", title="Title", text=text, raw_payload={})
-    return ClassifiedArticle(
-        content=content, topic=PrimaryTopic.PAPERS, classification_source="rules"
-    )
-
-
-def test_subtopic_classifier_heuristics() -> None:
-    classifier = SubtopicClassifier()
-    article = _paper("This reinforcement learning approach uses new policy gradients.")
-
-    assert classifier.classify(article) == ["RL"]
-
-
-def test_subtopic_classifier_non_paper() -> None:
-    classifier = SubtopicClassifier()
-    content = ArticleContent(
-        url="https://blog.com", title="Blog", text="Agents everywhere", raw_payload={}
-    )
-    article = ClassifiedArticle(
-        content=content, topic=PrimaryTopic.BLOGS, classification_source="rules"
-    )
-
-    assert classifier.classify(article) == []
-
-
-def test_subtopic_classifier_llm_fallback() -> None:
-    payload = json.dumps({"subtopics": ["Agents", "New Idea"]})
-    stub = StubLLM(payload)
-    classifier = SubtopicClassifier(llm_client=stub)
-    article = _paper("An overview of tool use")
+def _paper_entry(title: str, recommendation: str = "") -> NewsletterEntry:
     metadata = MetadataRecord(
         topic=PrimaryTopic.PAPERS,
-        title="Test",
-        authors=[],
-        organizations=[],
-        recommendation="",
+        title=title,
+        authors=["Author"],
+        organizations=["Org"],
+        recommendation=recommendation,
         subtopics=[],
         repositories=[
             RepositoryReference(
@@ -68,8 +32,58 @@ def test_subtopic_classifier_llm_fallback() -> None:
         datasets=[],
         missing_optional_fields=[],
     )
+    return NewsletterEntry(
+        source_url="https://example.com/paper",
+        metadata=metadata,
+        topic=PrimaryTopic.PAPERS,
+        subtopics=[],
+    )
 
-    result = classifier.classify(article, metadata)
 
-    assert result == ["Agents"]
+def test_llm_assigns_subtopics() -> None:
+    payload = json.dumps({"classifications": [{"id": 1, "subtopics": ["LLM"]}]})
+    stub = StubLLM(payload)
+    classifier = SubtopicClassifier(llm_client=stub)
+    entry = _paper_entry("Transformers", "Investigates transformer scaling laws")
+
+    classifier.assign_subtopics([entry])
+
     assert stub.calls == 1
+    assert entry.subtopics == ["LLM"]
+    assert entry.metadata.subtopics == ["LLM"]
+
+
+def test_non_paper_entries_are_ignored() -> None:
+    stub = StubLLM(json.dumps({"classifications": []}))
+    classifier = SubtopicClassifier(llm_client=stub)
+    metadata = MetadataRecord(
+        topic=PrimaryTopic.BLOGS,
+        title="Blog",
+        authors=[],
+        organizations=[],
+        recommendation="",
+        subtopics=[],
+        repositories=[],
+        datasets=[],
+        missing_optional_fields=[],
+    )
+    entry = NewsletterEntry(
+        source_url="https://example.com/blog",
+        metadata=metadata,
+        topic=PrimaryTopic.BLOGS,
+        subtopics=[],
+    )
+
+    classifier.assign_subtopics([entry])
+
+    assert entry.subtopics == []
+
+
+def test_gracefully_handles_bad_json() -> None:
+    stub = StubLLM("not json")
+    classifier = SubtopicClassifier(llm_client=stub)
+    entry = _paper_entry("Test Paper")
+
+    classifier.assign_subtopics([entry])
+
+    assert entry.subtopics == []

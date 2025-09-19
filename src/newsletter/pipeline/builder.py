@@ -7,7 +7,7 @@ from pathlib import Path
 
 from newsletter.classification.subtopic_classifier import SubtopicClassifier
 from newsletter.classification.topic_classifier import TopicClassifier
-from newsletter.io.models import ClassifiedArticle, MetadataRecord, NewsletterEntry, PipelineResult
+from newsletter.io.models import NewsletterEntry, PipelineResult
 from newsletter.io.url_loader import UrlLoadError, load_urls
 from newsletter.metadata.extractor import MetadataExtractionError, MetadataExtractor
 from newsletter.services.jina_client import JinaClient, JinaClientError
@@ -70,25 +70,17 @@ class NewsletterPipeline:
                 result.failed_urls.append(normalized_url)
                 continue
 
-            final_metadata = self._finalize_metadata(classified, metadata)
             newsletter_entry = NewsletterEntry(
                 source_url=content.url,
-                metadata=final_metadata,
+                metadata=metadata,
                 topic=classified.topic,
-                subtopics=final_metadata.subtopics,
+                subtopics=metadata.subtopics,
             )
             result.entries.append(newsletter_entry)
 
+        self._subtopic_classifier.assign_subtopics(result.entries)
         LOGGER.info("Pipeline completed: %s entries", len(result.entries))
         return result
-
-    def _finalize_metadata(
-        self, classified: ClassifiedArticle, metadata: MetadataRecord
-    ) -> MetadataRecord:
-        subtopics = self._subtopic_classifier.classify(classified, metadata)
-        if subtopics:
-            return metadata.model_copy(update={"subtopics": subtopics})
-        return metadata
 
 
 __all__ = ["NewsletterPipeline"]

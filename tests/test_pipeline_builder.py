@@ -57,11 +57,14 @@ class StubMetadataExtractor:
 
 
 class StubSubtopicClassifier:
-    def __init__(self, output):
-        self.output = output
+    def __init__(self, mapping):
+        self.mapping = mapping
 
-    def classify(self, article, metadata):  # type: ignore[override]
-        return self.output
+    def assign_subtopics(self, entries):  # type: ignore[override]
+        for entry in entries:
+            subtopics = self.mapping.get(entry.source_url, [])
+            entry.subtopics = subtopics
+            entry.metadata = entry.metadata.model_copy(update={"subtopics": subtopics})
 
 
 def test_pipeline_success_flow() -> None:
@@ -89,7 +92,7 @@ def test_pipeline_success_flow() -> None:
         jina_client=StubJinaClient(content),
         topic_classifier=StubTopicClassifier(PrimaryTopic.PAPERS),
         metadata_extractor=StubMetadataExtractor(metadata),
-        subtopic_classifier=StubSubtopicClassifier(["LLM"]),
+        subtopic_classifier=StubSubtopicClassifier({"https://example.com/a": ["LLM"]}),
     )
 
     result = pipeline.run("manifest.txt")
@@ -107,7 +110,7 @@ def test_pipeline_handles_failures() -> None:
         jina_client=StubJinaClient(content),
         topic_classifier=StubTopicClassifier(PrimaryTopic.PAPERS),
         metadata_extractor=StubMetadataExtractor(MetadataExtractionError("boom")),
-        subtopic_classifier=StubSubtopicClassifier([]),
+        subtopic_classifier=StubSubtopicClassifier({}),
     )
 
     result = pipeline.run("manifest.txt")
