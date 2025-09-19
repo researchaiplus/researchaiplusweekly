@@ -81,13 +81,31 @@ def cli(manifest: Path, output_dir: Path | None, log_level: str | None, dry_run:
 
 
 def _format_summary(result: PipelineResult) -> str:
-    parts = [
+    lines = [
         f"Processed entries: {result.success_count}",
         f"Invalid URLs: {len(result.invalid_urls)}",
         f"Duplicates skipped: {len(result.skipped_urls)}",
         f"Failures: {len(result.failed_urls)}",
     ]
-    return " | ".join(parts)
+
+    if result.invalid_urls:
+        lines.append("Invalid URL details:")
+        for invalid in result.invalid_urls:
+            lines.append(
+                f"  - line {invalid.source_line}: {invalid.raw_url} (reason: {invalid.reason})"
+            )
+
+    if result.skipped_urls:
+        lines.append("Duplicate URLs skipped:")
+        for url in result.skipped_urls:
+            lines.append(f"  - {url}")
+
+    if result.failed_urls:
+        lines.append("Failed to process URLs:")
+        for url in result.failed_urls:
+            lines.append(f"  - {url}")
+
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry guard
