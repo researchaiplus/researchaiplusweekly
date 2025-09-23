@@ -2,6 +2,9 @@ services:
   - type: redis
     name: ai-newsletter-redis
     plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all (adjust as needed)
   - type: web
     name: ai-newsletter-web
     env: python
