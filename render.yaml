@@ -34,7 +34,6 @@ services:
       - key: DATABASE_PATH
         value: /var/data/newsletter_tasks.db
       - key: CELERY_TASK_ALWAYS_EAGER
-        value: "false"
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
@@ -65,7 +64,6 @@ services:
       - key: DATABASE_PATH
         value: /var/data/newsletter_tasks.db
       - key: CELERY_TASK_ALWAYS_EAGER
-        value: "false"
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
