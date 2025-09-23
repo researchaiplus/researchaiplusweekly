@@ -122,7 +122,7 @@ def _parse_response(
             continue
         normalized = _normalize_subtopics(subtopics_field, allowed)
         if normalized:
-            mapping[entry.source_url] = normalized
+            mapping[entry.source_url] = normalized[:1]
 
     return mapping
 
