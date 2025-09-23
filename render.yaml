@@ -1,17 +1,11 @@
-# Newsletter Workflow Deployment Configuration
+# Newsletter Workflow Deployment Configuration (Free Tier)
 # 
-# Configuration Options:
-# - Set CELERY_TASK_ALWAYS_EAGER=true to disable Redis and run tasks synchronously
-# - Set CELERY_TASK_ALWAYS_EAGER=false to use Redis for asynchronous task processing
-# - You can modify CELERY_TASK_ALWAYS_EAGER in the Render dashboard after deployment
+# This configuration runs tasks synchronously without Redis to avoid paid services
+# - Tasks run synchronously (no Redis/worker needed)
+# - Only the web service is deployed
+# - To enable Redis later, add back the Redis and worker services
 #
 services:
-  - type: redis
-    name: ai-newsletter-redis
-    plan: starter
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: Allow all (adjust as needed)
   - type: web
     name: ai-newsletter-web
     env: python
@@ -21,20 +15,10 @@ services:
     envVars:
       - key: PORT
         value: "10000"
-      - key: CELERY_BROKER_URL
-        fromService:
-          name: ai-newsletter-redis
-          type: redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          name: ai-newsletter-redis
-          type: redis
-          property: connectionString
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: "true"
       - key: DATABASE_PATH
         value: /var/data/newsletter_tasks.db
-      - key: CELERY_TASK_ALWAYS_EAGER
-        sync: false
       - key: OPENROUTER_API_KEY
         sync: false
       - key: JINA_READER_API_KEY
@@ -44,32 +28,3 @@ services:
       mountPath: /var/data
       sizeGB: 1
     healthCheckPath: /healthz
-  - type: worker
-    name: ai-newsletter-worker
-    env: python
-    plan: starter
-    buildCommand: pip install --upgrade pip && pip install .
-    startCommand: celery -A newsletter.api.celery_app.celery_app worker --loglevel=info --concurrency=2
-    envVars:
-      - key: CELERY_BROKER_URL
-        fromService:
-          name: ai-newsletter-redis
-          type: redis
-          property: connectionString
-      - key: CELERY_RESULT_BACKEND
-        fromService:
-          name: ai-newsletter-redis
-          type: redis
-          property: connectionString
-      - key: DATABASE_PATH
-        value: /var/data/newsletter_tasks.db
-      - key: CELERY_TASK_ALWAYS_EAGER
-        sync: false
-      - key: OPENROUTER_API_KEY
-        sync: false
-      - key: JINA_READER_API_KEY
-        sync: false
-    disk:
-      name: newsletter-tasks
-      mountPath: /var/data
-      sizeGB: 1
