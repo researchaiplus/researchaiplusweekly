@@ -18,13 +18,9 @@ services:
       - key: CELERY_TASK_ALWAYS_EAGER
         value: "true"
       - key: DATABASE_PATH
-        value: /var/data/newsletter_tasks.db
+        value: /tmp/newsletter_tasks.db
       - key: OPENROUTER_API_KEY
         sync: false
       - key: JINA_READER_API_KEY
         sync: false
-    disk:
-      name: newsletter-tasks
-      mountPath: /var/data
-      sizeGB: 1
     healthCheckPath: /healthz
