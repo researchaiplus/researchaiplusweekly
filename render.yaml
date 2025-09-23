@@ -1,3 +1,10 @@
+# Newsletter Workflow Deployment Configuration
+# 
+# Configuration Options:
+# - Set CELERY_TASK_ALWAYS_EAGER=true to disable Redis and run tasks synchronously
+# - Set CELERY_TASK_ALWAYS_EAGER=false to use Redis for asynchronous task processing
+# - You can modify CELERY_TASK_ALWAYS_EAGER in the Render dashboard after deployment
+#
 services:
   - type: redis
     name: ai-newsletter-redis
@@ -28,6 +35,7 @@ services:
         value: /var/data/newsletter_tasks.db
       - key: CELERY_TASK_ALWAYS_EAGER
         value: "false"
+        sync: false
       - key: OPENROUTER_API_KEY
         sync: false
       - key: JINA_READER_API_KEY
@@ -56,6 +64,9 @@ services:
           property: connectionString
       - key: DATABASE_PATH
         value: /var/data/newsletter_tasks.db
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: "false"
+        sync: false
       - key: OPENROUTER_API_KEY
         sync: false
       - key: JINA_READER_API_KEY
