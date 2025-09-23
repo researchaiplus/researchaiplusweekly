@@ -1,0 +1,63 @@
+services:
+  - type: redis
+    name: ai-newsletter-redis
+    plan: starter
+  - type: web
+    name: ai-newsletter-web
+    env: python
+    plan: starter
+    buildCommand: pip install --upgrade pip && pip install .
+    startCommand: uvicorn newsletter.api.app:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: ai-newsletter-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: ai-newsletter-redis
+          type: redis
+          property: connectionString
+      - key: DATABASE_PATH
+        value: /var/data/newsletter_tasks.db
+      - key: CELERY_TASK_ALWAYS_EAGER
+        value: "false"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: JINA_READER_API_KEY
+        sync: false
+    disk:
+      name: newsletter-tasks
+      mountPath: /var/data
+      sizeGB: 1
+    healthCheckPath: /healthz
+  - type: worker
+    name: ai-newsletter-worker
+    env: python
+    plan: starter
+    buildCommand: pip install --upgrade pip && pip install .
+    startCommand: celery -A newsletter.api.celery_app.celery_app worker --loglevel=info --concurrency=2
+    envVars:
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: ai-newsletter-redis
+          type: redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: ai-newsletter-redis
+          type: redis
+          property: connectionString
+      - key: DATABASE_PATH
+        value: /var/data/newsletter_tasks.db
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: JINA_READER_API_KEY
+        sync: false
+    disk:
+      name: newsletter-tasks
+      mountPath: /var/data
+      sizeGB: 1

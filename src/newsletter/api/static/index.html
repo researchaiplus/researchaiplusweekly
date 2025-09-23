@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Newsletter Generator</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/dompurify@3.1.0/dist/purify.min.js"
+      integrity="sha384-UJMN2ApmB7ZGmMD0Wv7Tdw6wh965xl2lcbH6h5PuiyEflEG3awWUOtLDOZv0Nw0/"
+      crossorigin="anonymous"
+    ></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>AI Newsletter Generator</h1>
+        <p class="tagline">Paste or upload URLs, generate markdown, and stay updated in real time.</p>
+      </div>
+      <div class="status-pill" id="connection-status">Idle</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel input-panel" aria-labelledby="input-panel-title">
+        <h2 id="input-panel-title">Input</h2>
+        <form id="generation-form" novalidate>
+          <div class="form-group">
+            <label for="url-input">URLs</label>
+            <textarea
+              id="url-input"
+              name="url-input"
+              placeholder="Paste one URL per line. Lines starting with # are treated as comments."
+              rows="14"
+              spellcheck="false"
+            ></textarea>
+            <div class="input-meta" role="status">
+              <span id="url-count">0 URLs</span>
+              <span class="dot">•</span>
+              <span id="duplicate-count">0 duplicates</span>
+              <span class="dot">•</span>
+              <span id="invalid-count">0 invalid</span>
+            </div>
+          </div>
+
+          <div class="form-group file-group">
+            <label for="file-input">Upload URL manifest (.txt)</label>
+            <div class="file-actions">
+              <input type="file" id="file-input" accept=".txt,text/plain" />
+              <button type="button" id="upload-clear-btn" class="ghost">Clear upload</button>
+            </div>
+            <p class="help-text">Max 5 MB. File is parsed server-side to reuse normalisation rules.</p>
+            <ul id="invalid-list" class="invalid-list" hidden></ul>
+          </div>
+
+          <fieldset class="options-group">
+            <legend>Options</legend>
+            <label class="option-item">
+              <input type="checkbox" id="include-subtopics" name="include-subtopics" />
+              Include suggested subtopics
+            </label>
+            <label class="option-item">
+              Max recommendation length
+              <input
+                type="number"
+                id="max-rec-length"
+                name="max-rec-length"
+                min="0"
+                step="10"
+                placeholder="e.g. 120"
+              />
+            </label>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" id="generate-btn" class="primary">Generate newsletter</button>
+            <button type="button" id="reset-btn" class="ghost">Reset</button>
+          </div>
+          <div id="form-message" role="alert" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="panel preview-panel" aria-labelledby="preview-panel-title">
+        <header class="preview-header">
+          <h2 id="preview-panel-title">Markdown Preview</h2>
+          <div class="preview-actions">
+            <button type="button" id="copy-btn" disabled>Copy Markdown</button>
+            <button type="button" id="download-btn" disabled>Download Markdown</button>
+          </div>
+        </header>
+        <progress id="progress-bar" value="0" max="1"></progress>
+        <div class="status-row">
+          <span id="status-text">Waiting for input…</span>
+          <span id="progress-text"></span>
+        </div>
+        <article id="markdown-preview" class="preview-content" aria-live="polite">
+          <p class="empty-message">Generated markdown will appear here once the task completes.</p>
+        </article>
+        <details id="raw-toggle" class="raw-markdown" hidden>
+          <summary>Show raw markdown</summary>
+          <textarea id="markdown-raw" readonly spellcheck="false"></textarea>
+        </details>
+      </section>
+    </main>
+
+    <footer class="status-footer">
+      <span id="task-id-display">Task: —</span>
+      <span id="topics-display"></span>
+    </footer>
+  </body>
+</html>
