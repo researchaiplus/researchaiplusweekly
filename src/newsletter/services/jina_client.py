@@ -35,6 +35,7 @@ class JinaClient:
             follow_redirects=True,
             transport=transport,
         )
+        self._had_auth_failure = False
 
     @staticmethod
     def _build_headers(settings: JinaReaderSettings) -> dict[str, str]:
@@ -66,7 +67,21 @@ class JinaClient:
                 response = self._client.get(self._build_request_url(target_url))
                 response.raise_for_status()
                 return self._parse_response(target_url, response)
-            except (httpx.TimeoutException, httpx.HTTPStatusError, httpx.TransportError) as exc:
+            except httpx.HTTPStatusError as exc:
+                if (
+                    not self._had_auth_failure
+                    and exc.response is not None
+                    and exc.response.status_code == 401
+                    and "authorization" in self._client.headers
+                ):
+                    self._had_auth_failure = True
+                    LOGGER.warning(
+                        "Jina Reader rejected provided API token; retrying without Authorization header."
+                    )
+                    self._client.headers.pop("authorization", None)
+                    continue
+                last_error = exc
+            except (httpx.TimeoutException, httpx.TransportError) as exc:
                 last_error = exc
                 LOGGER.warning(
                     "Jina Reader request failed (attempt %s/%s): %s",
@@ -74,6 +89,14 @@ class JinaClient:
                     self._max_retries + 1,
                     exc,
                 )
+                continue
+
+            LOGGER.warning(
+                "Jina Reader request failed (attempt %s/%s): %s",
+                attempt + 1,
+                self._max_retries + 1,
+                last_error,
+            )
         message = "Failed to retrieve content from Jina Reader"
         if last_error:
             message = f"{message}: {last_error}"
