@@ -6,7 +6,7 @@ from functools import lru_cache
 
 from celery import Celery
 
-from newsletter.config import AppSettings, get_settings
+from newsletter.config import AppSettings, get_settings, setup_logging
 
 
 @lru_cache(maxsize=1)
@@ -17,6 +17,10 @@ def _load_settings() -> AppSettings:
 @lru_cache(maxsize=1)
 def create_celery_app() -> Celery:
     settings = _load_settings()
+    
+    # Configure logging for Celery workers
+    setup_logging()
+    
     app = Celery(
         "newsletter",
         broker=settings.celery.broker_url,

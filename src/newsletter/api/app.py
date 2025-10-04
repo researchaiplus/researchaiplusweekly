@@ -27,6 +27,7 @@ from newsletter.api.dependencies import get_task_dispatcher, get_task_store
 from newsletter.api.service import is_terminal_status
 from newsletter.api.task_dispatcher import TaskDispatcher
 from newsletter.api.task_store import TaskStore
+from newsletter.config import setup_logging
 from newsletter.io.url_loader import normalize_url
 
 
@@ -37,6 +38,9 @@ _url_adapter = TypeAdapter(AnyHttpUrl)
 
 app = FastAPI(title="AI Newsletter Generator API", version="0.1.0")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Configure logging
+setup_logging()
 
 
 @app.get("/", response_class=FileResponse)

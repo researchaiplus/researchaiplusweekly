@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from functools import lru_cache
 from pathlib import Path
 
@@ -130,6 +131,19 @@ def get_settings() -> AppSettings:
     )
 
 
+def setup_logging(log_level: str | None = None) -> None:
+    """Configure logging for the application."""
+    settings = get_settings()
+    level = (log_level or settings.newsletter.log_level).upper()
+    numeric_level = getattr(logging, level, logging.INFO)
+    
+    logging.basicConfig(
+        level=numeric_level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        force=True,  # Override any existing configuration
+    )
+
+
 __all__ = [
     "AppSettings",
     "CelerySettings",
@@ -138,4 +152,5 @@ __all__ = [
     "NewsletterSettings",
     "OpenRouterSettings",
     "get_settings",
+    "setup_logging",
 ]
