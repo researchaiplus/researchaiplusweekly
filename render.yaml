@@ -19,7 +19,7 @@ services:
         value: "true"
       - key: DATABASE_PATH
         value: /tmp/newsletter_tasks.db
-      - key: OPENROUTER_API_KEY
+      - key: OPENROUTER_KEY
         sync: false
       - key: JINA_READER_API_KEY
         sync: false
