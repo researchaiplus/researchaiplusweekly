@@ -26,6 +26,14 @@ class OpenRouterClient:
         transport: httpx.BaseTransport | None = None,
         client: httpx.Client | None = None,
     ) -> None:
+        # Debug logging for API key configuration
+        LOGGER.info("OpenRouter client initializing...")
+        LOGGER.info("API key length: %d", len(settings.api_key))
+        LOGGER.info("API key first 10 chars: %s", settings.api_key[:10] if settings.api_key else "EMPTY")
+        LOGGER.info("API key empty? %s", bool(not settings.api_key))
+        LOGGER.info("Base URL: %s", settings.base_url)
+        LOGGER.info("Model: %s", settings.model)
+
         headers = {
             "Authorization": f"Bearer {settings.api_key}",
             "Content-Type": "application/json",
